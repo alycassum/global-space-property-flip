@@ -58,7 +58,7 @@ function draw(){$('hc').textContent=fmt(S.cash);$('hd').textContent=Math.min(S.d
 const avg=S.h&&S.ph!='market'?Math.round(Object.values(S.lv).reduce((a,b)=>a+b,0)/R.length):0;
 $('art').style.display=S.h?'block':'none';if(S.h)$('art').innerHTML=art(S.h.k,S.ph=='result'||S.ph=='sell'?Math.max(avg,1):avg,S.lv.ext);
 $('aly').textContent='Aly, Global Space: "'+(Q[S.ph]||'Every flip teaches you something.')+'"';
-$('st').innerHTML=({intro,market,inspect,offer,reno,sell,result,end})[S.ph]();window.scrollTo(0,0)}
+$('st').innerHTML=({intro,market,inspect,offer,reno,sell,result,end})[S.ph]();window.scrollTo(0,window.scrollY)}
 function intro(){const T=[['Beginner','Any loss'],['Capable investor','Up to 20 lakh'],['Sharp investor','20 to 50 lakh'],['Exceptional','50 lakh to 1 crore'],['Market master','Over 1 crore']];
 return `<div class="hero"><div class="hbg"></div><div class="hin"><p class="sub">Global Space × Vision Next</p><h1>Flip House</h1><p>Buy a neglected Karachi property, fix what matters and sell it for a profit. Three deals, starting with PKR 1.5 crore.</p><button class="go" onclick="S.ph='market';draw()">Start playing</button></div></div>
 <div class="card"><h2>How it works</h2><div class="grid">${[['1. Find','Choose from three listings. Distressed sales are cheap but risky.'],['2. Inspect','Pay to see hidden faults before you buy, or take the risk and skip it.'],['3. Renovate','Fix what buyers care about and ignore what they do not. Match your upgrades to your target buyer.'],['4. Sell','Wait for a better offer if you dare. Holding costs and tax keep running.']].map(a=>`<div><h3>${a[0]}</h3><small>${a[1]}</small></div>`).join('')}</div></div>
