@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1b201b"><title>Flip House – Global Space × Vision Next</title>
+<style>
+:root{--bg:#1b201b;--p:#262d25;--p2:#2f372e;--g:#d9b26f;--o:#9bb26a;--t:#f1ece0;--m:#a9b0a0;--r:#e0766a}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--t);font:15px/1.5 system-ui,sans-serif;padding:14px}
+.w{max-width:760px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.logo{font:700 19px Georgia,serif}.logo small{display:block;font:12px system-ui;color:var(--g)}
+.hud{display:flex;gap:16px;text-align:right}.hud span{display:block;font-size:11px;color:var(--m)}.hud b{color:var(--g);font-size:15px}
+.card{background:var(--p);border:1px solid #3a4338;border-radius:14px;padding:16px;margin-bottom:12px}
+#art svg{width:100%;display:block;border-radius:10px}
+h2{font:600 22px Georgia,serif;margin-bottom:4px}h3{font:600 15px Georgia,serif;margin:12px 0 6px}.sub{color:var(--m);font-size:13px;margin-bottom:10px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+button{font:inherit;cursor:pointer;color:var(--t);background:var(--p2);border:1px solid #444f42;border-radius:10px;padding:10px 12px;text-align:left}
+button:hover:not(:disabled){border-color:var(--g)}button:disabled{opacity:.4;cursor:not-allowed}button.sel{border-color:var(--g);background:#3d3b27}
+.go{background:var(--g);color:#1b1b12;font-weight:700;text-align:center;border:0;width:100%;margin-top:10px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #353d33}.pos{color:var(--o)}.neg{color:var(--r)}
+.q{font-style:italic;color:var(--m);border-left:3px solid var(--g);padding-left:10px;font-size:13px}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.lv button{padding:8px 4px;text-align:center;font-size:12px}
+.tag{display:inline-block;background:#4a3330;color:var(--r);border-radius:6px;padding:2px 8px;font-size:12px;margin:2px 4px 0 0}
+#msg{color:var(--g);min-height:20px;font-size:13px;margin-bottom:6px}
+</style></head><body><div class="w">
+<header><div class="logo">Flip House<small>Global Space × Vision Next</small></div>
+<div class="hud"><div><span>Cash</span><b id="hc"></b></div><div><span>Deal</span><b id="hd"></b></div></div></header>
+<div class="card" id="art"></div><div id="st"></div>
+<div class="card q" id="aly"></div></div>
+<script>
+const L=n=>n*1e5,$=id=>document.getElementById(id);
+const fmt=v=>{const a=Math.abs(v),s=v<0?'-':'';return a>=1e7?`${s}PKR ${(a/1e7).toFixed(2)} Cr`:a>=1e5?`${s}PKR ${(a/1e5).toFixed(1)} lakh`:`${s}PKR ${Math.round(a).toLocaleString()}`};
+const H=[{n:'The Gulberg Starter',a:'Gulberg',p:6.2e6,r:8.9e6,s:'2-bed, 1,100 sq ft'},{n:'The Olive House',a:'PECHS',p:8e6,r:11.5e6,s:'3-bed, 1,450 sq ft'},{n:'The Bath Island Flat',a:'Bath Island',p:9.5e6,r:13e6,s:'3-bed, 1,600 sq ft'},{n:'The Courtyard Home',a:'Gulshan',p:11.2e6,r:15.7e6,s:'4-bed, 1,900 sq ft'},{n:'The Clifton Residence',a:'Clifton',p:18.5e6,r:25.3e6,s:'3-bed, 2,200 sq ft'}];
+const F=[{n:'Damp walls',c:L(3.5)},{n:'Old wiring',c:L(4.5)},{n:'Leaking plumbing',c:L(3)},{n:'Cracked roof slab',c:L(6)}];
+const R=[{id:'liv',n:'Living room',c:[0,2.5,5,8.5]},{id:'kit',n:'Kitchen',c:[0,3,6.5,11]},{id:'bat',n:'Bathroom',c:[0,2,4.5,7.5]},{id:'ext',n:'Exterior and garden',c:[0,1.5,3.5,6]}];
+const LV=['Skip','Refresh','Elevate','Signature'],MU=[0,1.7,1.45,1.05];
+const B={fam:{n:'Family',d:'Loves kitchens and bathrooms',w:{liv:1,kit:1.4,bat:1.2,ext:.8}},inv:{n:'Investor',d:'Hates overspending, wants a clean unit',w:{liv:.85,kit:.85,bat:.85,ext:.85}},lux:{n:'Luxury buyer',d:'Pays for living room and exterior',w:{liv:1.3,kit:1.1,bat:1.1,ext:1.4}}};
+const EV=[{n:'Steady market',d:0},{n:'Steady market',d:.01},{n:'Market boom',d:.08},{n:'Bidding war',d:.05},{n:'Market slump',d:-.07},{n:'Rival listing nearby',d:-.04}];
+const Q={market:'Pick a property you can actually afford. Leave room for renovation.',inspect:'An inspection costs a little and can save a lot. Or you can gamble.',offer:'Lowball and the seller may walk. Pay asking and you give away your margin.',reno:'Match the finish to the buyer. The most expensive option is rarely the most profitable one.',sell:'Patience is not free. Every month you hold, the meter runs.'};
+let S;
+function start(){S={cash:1e7,deal:1,total:0,ph:'market'};newList();draw()}
+function newList(){S.list=[...H].sort(()=>Math.random()-.5).slice(0,3).map(h=>{const k=Math.random()<.35?0:Math.random()<.65?1:2;return{...h,f:[...F].sort(()=>Math.random()-.5).slice(0,k),price:Math.round(h.p*(.95+Math.random()*.1)/1e4)*1e4}});S.h=null;S.known=false;S.insp=false;S.paid=0;S.lv={liv:0,kit:0,bat:0,ext:0};S.buyer='fam';S.waits=0;S.rej=false;S.msg=''}
+function art(l,e){const w=['#9a8f7a','#c9bd9f','#e7dcc0','#f4ead0'][l],r=['#5b4a3f','#6b4f3f','#7a3f32','#8a3b2c'][l];
+return `<svg viewBox="0 0 400 200"><defs><linearGradient id="k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${l>1?'#f6c98a':'#9fb0a6'}"/><stop offset="1" stop-color="#e9e2cf"/></linearGradient></defs><rect width="400" height="200" fill="url(#k)"/><rect y="160" width="400" height="40" fill="${e>0?'#6f9a4a':'#8a8456'}"/><polygon points="90,90 200,30 310,90" fill="${r}"/><rect x="105" y="90" width="190" height="75" fill="${w}"/><rect x="125" y="108" width="40" height="30" fill="${l>0?'#ffe9a8':'#6d7a78'}"/><rect x="235" y="108" width="40" height="30" fill="${l>0?'#ffe9a8':'#6d7a78'}"/><rect x="187" y="118" width="26" height="47" fill="${l>1?'#2f4a3a':'#5b4a3f'}"/>${l==0?'<path d="M112 94l14 36-8 18" stroke="#4a4236" fill="none" stroke-width="2"/>':''}<circle cx="70" cy="160" r="${10+e*6}" fill="#4f7a3a"/><circle cx="335" cy="160" r="${10+e*6}" fill="#4f7a3a"/>${e>1?'<circle cx="62" cy="152" r="4" fill="#e0766a"/><circle cx="342" cy="150" r="4" fill="#d9b26f"/>':''}${S&&S.sold?'<rect x="20" y="110" width="50" height="26" fill="#fff"/><text x="45" y="128" text-anchor="middle" font-size="12" fill="#a33" font-weight="700">SOLD</text>':''}</svg>`}
+const tot=()=>R.reduce((s,r)=>s+L(r.c[S.lv[r.id]]),0);
+const fc=()=>S.h.f.reduce((s,f)=>s+f.c,0);
+function months(){return 2+R.filter(r=>S.lv[r.id]>0).length+R.filter(r=>S.lv[r.id]==3).length+S.h.f.length+S.waits}
+function val(){let g=0;R.forEach(r=>{const l=S.lv[r.id];let m=MU[l]*B[S.buyer].w[r.id];if(S.buyer=='inv'&&l==3)m*=.7;if(S.buyer=='lux'){if(l==1)m*=.6;if(l==3)m*=1.15}g+=L(r.c[l])*m});return S.h.r*.9+g}
+function draw(){$('hc').textContent=fmt(S.cash);$('hd').textContent=Math.min(S.deal,3)+' of 3';
+const avg=S.h&&S.ph!='market'?Math.round(Object.values(S.lv).reduce((a,b)=>a+b,0)/4):0;
+$('art').innerHTML=art(S.ph=='result'||S.ph=='sell'?Math.max(avg,1):avg,S.lv.ext);
+$('aly').textContent='Aly: "'+(Q[S.ph]||'Every flip teaches you something.')+'"';
+$('st').innerHTML=({market,inspect,offer,reno,sell,result,end})[S.ph]();}
+function market(){if(S.cash<6.2e6*1.03)return end();
+return `<div class="card"><h2>Find a property</h2><p class="sub">Three listings today. Prices include a 2.5% transfer cost on top.</p><div class="grid">${S.list.map((h,i)=>`<button ${S.cash<h.price*1.03?'disabled':''} onclick="pick(${i})"><b>${h.n}</b><br>${h.a}, ${h.s}<br>Asking ${fmt(h.price)}<br><span class="sub">Likely resale about ${fmt(h.r)}</span></button>`).join('')}</div></div>`}
+function pick(i){S.h=S.list[i];S.ph='inspect';draw()}
+function inspect(){const h=S.h;return `<div class="card"><h2>${h.n}</h2><p class="sub">${h.a}, ${h.s}. Asking ${fmt(h.price)}</p>${S.known?`<h3>Inspection report</h3>${h.f.length?h.f.map(f=>`<span class="tag">${f.n}: ${fmt(f.c)}</span>`).join(''):'<span class="pos">No hidden faults found.</span>'}<button class="go" onclick="S.ph='offer';draw()">Make an offer</button>`:`<p>Some properties hide faults like damp, wiring or roof cracks. An inspection costs PKR 25,000 and shows them before you buy.</p><button class="go" onclick="insp()">Hire an inspector</button><button class="go" style="background:var(--p2);color:var(--t)" onclick="S.ph='offer';draw()">Skip and make an offer</button>`}<button style="margin-top:10px" onclick="walk()">Walk away</button></div>`}
+function insp(){S.cash-=25000;S.known=true;S.insp=true;draw()}
+function walk(){S.ph='market';newList();draw()}
+function offer(){const h=S.h;const o=[[1,1],[.93,.6],[.88,.35]];return `<div class="card"><h2>Make your offer</h2><p class="sub">${h.n}. Asking ${fmt(h.price)}</p><div id="msg">${S.msg}</div><div class="grid">${o.filter(x=>!S.rej||x[0]==1).map(x=>`<button ${S.cash<h.price*x[0]*1.03?'disabled':''} onclick="bid(${x[0]},${x[1]})"><b>${x[0]==1?'Pay asking':'Offer '+Math.round(x[0]*100)+'%'}</b><br>${fmt(Math.round(h.price*x[0]/1e4)*1e4)}<br><span class="sub">${x[0]==1?'Seller accepts':Math.round(x[1]*100)+'% chance seller accepts'}</span></button>`).join('')}</div><button style="margin-top:10px" onclick="walk()">Walk away</button></div>`}
+function bid(p,c){if(p<1&&Math.random()>=c){S.rej=true;S.msg='Seller refused. Asking price stands.';return draw()}
+S.paid=Math.round(S.h.price*p/1e4)*1e4;S.cash-=S.paid*1.025;S.msg='';S.ph='reno';draw()}
+function reno(){const h=S.h;return `<div class="card"><h2>Plan the renovation</h2><p class="sub">Bought ${h.n} for ${fmt(S.paid)}. Pick who you are selling to, then choose a finish for each space.</p><h3>Target buyer</h3><div class="grid">${Object.entries(B).map(([k,b])=>`<button class="${S.buyer==k?'sel':''}" onclick="S.buyer='${k}';draw()"><b>${b.n}</b><br><span class="sub">${b.d}</span></button>`).join('')}</div>${R.map(r=>`<h3>${r.n}</h3><div class="lv">${LV.map((n,l)=>{const d=L(r.c[l])-L(r.c[S.lv[r.id]]);return `<button class="${S.lv[r.id]==l?'sel':''}" ${d>S.cash?'disabled':''} onclick="S.lv.${r.id}=${l};draw()">${n}<br>${l?fmt(L(r.c[l])):'-'}</button>`}).join('')}</div>`).join('')}
+<div style="margin-top:12px"><div class="row"><span>Renovation cost</span><b>${fmt(tot())}</b></div><div class="row"><span>Estimated time</span><b>${months()} months</b></div><div class="row"><span>Estimated sale value</span><b>${fmt(val())}</b></div></div><button class="go" onclick="finish()">Start renovation</button></div>`}
+function finish(){S.cash-=tot();S.fault=fc();S.cash-=S.fault;S.ph='sell';S.roll=0;newOffer();draw()}
+function newOffer(){S.ev=EV[Math.floor(Math.random()*EV.length)];S.off=Math.round(val()*(1+S.ev.d+(Math.random()-.5)*.04)/1e4)*1e4}
+function sell(){const hold=months()*45000;return `<div class="card"><h2>Renovation complete</h2><p class="sub">${S.insp||!S.fault?'':'Surprise: hidden faults cost you '+fmt(S.fault)+' to fix.'}</p><div class="row"><span>Market</span><b>${S.ev.n}</b></div><div class="row"><span>Offer on the table</span><b>${fmt(S.off)}</b></div><div class="row"><span>Holding cost so far (${months()} months)</span><b class="neg">${fmt(hold)}</b></div><button class="go" onclick="accept()">Accept offer</button><button class="go" style="background:var(--p2);color:var(--t)" ${S.waits>=2?'disabled':''} onclick="S.waits++;newOffer();draw()">Wait a month for a better offer (${2-S.waits} left)</button></div>`}
+function accept(){const h=S.h,hold=months()*45000,fees=S.off*.03,buy=S.paid*1.025,fx=S.insp?25000:0;
+S.net=S.off-fees-buy-tot()-S.fault-hold-fx;S.rows=[['Sale price',S.off],['Selling costs (3%)',-fees],['Purchase and transfer',-buy],['Renovation',-tot()],['Hidden faults',-S.fault],['Holding costs',-hold],['Inspection',-fx]];
+S.cash+=S.off-fees-hold;S.total+=S.net;S.sold=1;S.ph='result';draw()}
+function result(){const m=S.net/(S.paid*1.025+tot()),p=S.net>=0;
+return `<div class="card"><h2>${m>.15?'A strong flip':p?'A small win':'A costly lesson'}</h2><p class="sub">${S.h.n}</p>${S.rows.map(r=>`<div class="row"><span>${r[0]}</span><b class="${r[1]<0?'neg':''}">${fmt(r[1])}</b></div>`).join('')}<div class="row"><span><b>Net profit</b></span><b class="${p?'pos':'neg'}">${fmt(S.net)}</b></div><button class="go" onclick="next()">${S.deal>=3?'See final score':'Next deal'}</button></div>`}
+function next(){S.deal++;S.sold=0;S.ph=S.deal>3?'end':'market';newList();draw()}
+function end(){S.ph='end';const t=S.cash-1e7,r=t<0?'Burned buyer':t<L(15)?'Cautious starter':t<L(40)?'Smart flipper':'Property mogul';
+return `<div class="card"><h2>${r}</h2><p class="sub">${S.deal>3?'Three deals done.':'You can no longer afford a listing.'}</p><div class="row"><span>Starting cash</span><b>PKR 1.00 Cr</b></div><div class="row"><span>Final cash</span><b>${fmt(S.cash)}</b></div><div class="row"><span>Total profit</span><b class="${t>=0?'pos':'neg'}">${fmt(t)}</b></div><p class="sub" style="margin-top:10px">Game simulation only. Excludes real-world taxes and financing. Real flips are rarely this simple.</p><button class="go" onclick="start()">Play again</button></div>`}
+start();
+</script></body></html>
