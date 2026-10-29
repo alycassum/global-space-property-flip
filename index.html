@@ -54,12 +54,12 @@ function after(){if(!document.body||!document.querySelectorAll)return;document.q
 const pb=$('pb');if(pb)setTimeout(()=>pb.style.width=pb.dataset.w+'%',60);
 if((S.ph=='result'&&S.net>0&&S.net/(S.paid*TX+tot())>.12)||(S.ph=='end'&&S.cash-1.5e7>=L(50)))confetti();
 const f=$('st').firstElementChild;if(f&&S.ph=='sell'&&(S.surpr.length||S.ov||S.delay||S.msg))f.classList.add('shake')}
-const shareTxt=()=>`I made ${fmt(S.cash-1.5e7)} profit in Flip House by Global Space and earned the rank ${NM[tier(S.cash-1.5e7)]}. Can you beat me?`;
+const shareTxt=()=>`Flip House by Global Space: ${fmt(S.cash-1.5e7)} profit across three deals. Rank: ${NM[tier(S.cash-1.5e7)]}.`;
 function card(cb){const t=S.cash-1.5e7,c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,1350);g.addColorStop(0,'#0d2444');g.addColorStop(1,'#03080f');x.fillStyle=g;x.fillRect(0,0,1080,1350);x.strokeStyle='#c9a96e';x.lineWidth=4;x.strokeRect(40,40,1000,1270);x.textAlign='center';
 const tx=(m,y,f,col)=>{x.font=f;x.fillStyle=col;x.fillText(m,540,y)};tx('GLOBAL SPACE × VISION NEXT',140,'600 40px Georgia','#c9a96e');tx('Flip House',225,'400 90px Georgia','#eef2f7');
-const q=S.last||{k:1,l:2,e:1},im=new Image();im.onload=()=>{x.drawImage(im,140,290,800,400);tx(NM[tier(t)],830,'600 92px Georgia','#c9a96e');tx(fmt(t)+' profit',930,'600 66px Georgia',t>=0?'#8fc28a':'#e0766a');tx('after 3 deals, starting with PKR 1.5 crore',990,'300 34px Arial','#a9b6c6');tx('Can you beat my score?',1150,'italic 46px Georgia','#eef2f7');tx('alycassum.github.io/global-space-property-flip',1230,'300 30px Arial','#7a8fa8');cb(c)};
+const q=S.last||{k:1,l:2,e:1},im=new Image();im.onload=()=>{x.drawImage(im,140,290,800,400);tx(NM[tier(t)],830,'600 92px Georgia','#c9a96e');tx(fmt(t)+' profit',930,'600 66px Georgia',t>=0?'#8fc28a':'#e0766a');tx('after 3 deals, starting with PKR 1.5 crore',990,'300 34px Arial','#a9b6c6');tx('Your turn.',1150,'italic 46px Georgia','#eef2f7');tx('alycassum.github.io/global-space-property-flip',1230,'300 30px Arial','#7a8fa8');cb(c)};
 im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art(q.k,q.l,q.e,1).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))}
-function shareCard(){const n=$('shn'),d={text:shareTxt()+' Play it here: '+GAME};card(c=>c.toBlob(b=>{const f=new File([b],'flip-house-score.png',{type:'image/png'});
+function shareCard(){const n=$('shn'),d={text:shareTxt()+'\nYour turn: '+GAME};card(c=>c.toBlob(b=>{const f=new File([b],'flip-house-score.png',{type:'image/png'});
 if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({...d,files:[f]}).catch(()=>{});
 else if(navigator.share)navigator.share({...d,url:GAME}).catch(()=>{});
 else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flip-house-score.png';a.click();if(navigator.clipboard)navigator.clipboard.writeText(d.text).catch(()=>{});if(n)n.textContent='Score card saved and message copied. Paste it when you share.'}}))}
