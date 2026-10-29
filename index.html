@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Command Centre</title>
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#182230;--muted:#697586;--line:#e5e9f0;--accent:#203b63;--accent2:#e9eff8;--green:#217653;--red:#b54747;--amber:#95651b;--shadow:0 8px 28px rgba(23,39,61,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 13px;font-weight:650;background:var(--accent);color:#fff}button.secondary{background:#eef1f6;color:#26364b}button.danger{background:#fff0f0;color:var(--red)}button.small{padding:6px 9px;font-size:13px}
+header{background:#172b48;color:#fff;padding:25px max(20px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+header h1{font-size:clamp(23px,3vw,31px);margin:0 0 5px;letter-spacing:-.6px}header p{margin:0;color:#d0d9e7}header .actions{display:flex;gap:8px;flex-wrap:wrap}header button{background:#fff;color:#172b48}header button.secondary{background:#2b4261;color:#fff}
+main{max-width:1180px;margin:24px auto;padding:0 18px 48px}.notice{background:#fff8e8;border:1px solid #f0dfb7;color:#76561d;border-radius:12px;padding:12px 15px;margin-bottom:18px;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat,.panel,.task{background:var(--panel);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}.stat{padding:16px}.stat .label{color:var(--muted);font-size:13px}.stat .num{font-size:28px;font-weight:750;margin-top:4px}
+.layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:18px;align-items:start}.panel{padding:18px}.panel h2{font-size:18px;margin:0 0 15px}.field{margin-bottom:13px}.field label{display:block;font-size:13px;font-weight:700;color:#435064;margin-bottom:6px}.field input,.field select,.field textarea,.search{width:100%;border:1px solid #d7dde7;border-radius:9px;padding:10px 11px;background:#fff;color:var(--ink);outline:none}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:#7794bd;box-shadow:0 0 0 3px #eaf0f8}.field textarea{min-height:85px;resize:vertical}.form-actions{display:flex;gap:8px}.form-actions button{flex:1}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.toolbar .search{flex:1;min-width:180px}.toolbar select{border:1px solid #d7dde7;border-radius:9px;background:#fff;padding:9px;max-width:190px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:2px 0 12px}.section-head h2{margin:0;font-size:18px}.count{font-size:12px;background:#eef1f6;color:#506078;border-radius:20px;padding:4px 8px}
+.tasks{display:grid;gap:10px}.task{padding:14px;display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px}.task input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--green)}.task-title{font-weight:730;overflow-wrap:anywhere}.task.done .task-title{text-decoration:line-through;color:#8490a0}.task-meta{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0}.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:30px;padding:3px 8px;background:#edf1f6;color:#4e5b6f}.pill.overdue{background:#fff0f0;color:var(--red)}.pill.today{background:#fff4dc;color:var(--amber)}.pill.completed{background:#e8f6ee;color:var(--green)}.task-notes{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}.task-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}.task-bottom small{color:var(--muted)}.task-buttons{display:flex;gap:6px}.empty{padding:30px 15px;text-align:center;color:var(--muted);border:1px dashed #ccd4e0;border-radius:14px;background:#fff}.muted{color:var(--muted)}.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}header{align-items:flex-start}.toolbar select{max-width:none;flex:1}}
+@media(max-width:430px){main{padding:0 12px 30px}.panel{padding:14px}.stats{gap:8px}.stat{padding:12px}.stat .num{font-size:24px}.task{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Daily Command Centre</h1><p>Your tasks, follow-ups and business notes — all in one place.</p></div>
+  <div class="actions">
+    <button class="secondary" id="exportBtn">Export backup</button>
+    <button class="secondary" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+  </div>
+</header>
+<main>
+  <div class="notice"><strong>Important:</strong> This version saves data in this browser on this device. It will still be here tomorrow, but it does not automatically sync to your phone or another computer. Export a backup regularly. GitHub Pages websites are generally publicly viewable even if the repository is private, so don't put sensitive client or financial information here.</div>
+  <section class="stats">
+    <div class="stat"><div class="label">Open tasks</div><div class="num" id="openStat">0</div></div>
+    <div class="stat"><div class="label">Due today</div><div class="num" id="todayStat">0</div></div>
+    <div class="stat"><div class="label">Overdue</div><div class="num" id="overdueStat">0</div></div>
+    <div class="stat"><div class="label">Completed</div><div class="num" id="doneStat">0</div></div>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <h2 id="formHeading">Add a task</h2>
+      <form id="taskForm">
+        <div class="field"><label for="title">Task *</label><input id="title" required maxlength="180" placeholder="e.g. Follow up with Kiran Ally"></div>
+        <div class="field"><label for="business">Business / category</label><select id="business"><option>Global Space</option><option>Vision Next</option><option>Woodhouse</option><option>Scan Line</option><option>Personal</option><option>Other</option></select></div>
+        <div class="field"><label for="due">Due date</label><input id="due" type="date"></div>
+        <div class="field"><label for="contact">Contact / company (optional)</label><input id="contact" maxlength="140" placeholder="e.g. Radisson Blu procurement"></div>
+        <div class="field"><label for="priority">Priority</label><select id="priority"><option value="High">High</option><option value="Normal" selected>Normal</option><option value="Low">Low</option></select></div>
+        <div class="field"><label for="notes">Notes / next step</label><textarea id="notes" maxlength="3000" placeholder="Last update, promised response, phone number (avoid sensitive data), next action…"></textarea></div>
+        <div class="form-actions"><button type="submit" id="saveBtn">Save task</button><button type="button" class="secondary" id="cancelEdit" hidden>Cancel</button></div>
+      </form>
+    </section>
+    <section>
+      <div class="toolbar">
+        <input class="search" id="search" placeholder="Search tasks, contacts or notes…">
+        <select id="businessFilter" aria-label="Filter by business"><option value="">All businesses</option><option>Global Space</option><option>Vision Next</option><option>Woodhouse</option><option>Scan Line</option><option>Personal</option><option>Other</option></select>
+        <select id="viewFilter" aria-label="Filter tasks"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="today">Due today</option><option value="overdue">Overdue</option><option value="done">Completed</option></select>
+      </div>
+      <div class="section-head"><h2 id="listHeading">Open tasks</h2><span class="count" id="resultCount">0 tasks</span></div>
+      <div class="tasks" id="taskList"></div>
+    </section>
+  </div>
+  <div class="footer">Saved automatically in this browser · Use Export backup to keep a copy of your data.</div>
+</main>
+<script>
+(() => {
+  const KEY = 'daily-command-centre-v1';
+  let tasks = [];
+  let editingId = null;
+  const $ = id => document.getElementById(id);
+  const today = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      tasks = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(tasks)) tasks = [];
+    } catch (e) { tasks = []; alert('Saved data could not be read. If you have a JSON backup, use Import backup.'); }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(tasks)); render(); }
+    catch(e) { alert('The browser could not save your tasks. Export a backup and check browser storage settings.'); }
+  }
+  function esc(s='') { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function dateLabel(s) {
+    if (!s) return 'No due date';
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+  }
+  function resetForm() {
+    editingId = null; $('taskForm').reset(); $('priority').value='Normal';
+    $('formHeading').textContent='Add a task'; $('saveBtn').textContent='Save task'; $('cancelEdit').hidden=true;
+  }
+  $('taskForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const title = $('title').value.trim();
+    if (!title) return;
+    const now = new Date().toISOString();
+    const data = {title, business:$('business').value, due:$('due').value, contact:$('contact').value.trim(), priority:$('priority').value, notes:$('notes').value.trim()};
+    if (editingId) {
+      tasks = tasks.map(t => t.id===editingId ? {...t,...data,updatedAt:now} : t);
+    } else {
+      tasks.unshift({id:makeId(),...data,done:false,createdAt:now,updatedAt:now,completedAt:null});
+    }
+    save(); resetForm();
+  });
+  $('cancelEdit').addEventListener('click', resetForm);
+  function editTask(id) {
+    const t = tasks.find(x=>x.id===id); if (!t) return;
+    editingId=id; $('title').value=t.title; $('business').value=t.business||'Global Space'; $('due').value=t.due||'';
+    $('contact').value=t.contact||''; $('priority').value=t.priority||'Normal'; $('notes').value=t.notes||'';
+    $('formHeading').textContent='Edit task'; $('saveBtn').textContent='Update task'; $('cancelEdit').hidden=false;
+    $('title').focus(); window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function toggleTask(id, done) {
+    const now = new Date().toISOString();
+    tasks = tasks.map(t=>t.id===id?{...t,done,completedAt:done?now:null,updatedAt:now}:t); save();
+  }
+  function deleteTask(id) {
+    const t=tasks.find(x=>x.id===id);
+    if (t && confirm(`Delete "${t.title}" permanently? Consider marking it complete instead.`)) {
+      tasks=tasks.filter(x=>x.id!==id); save();
+      if(editingId===id) resetForm();
+    }
+  }
+  function render() {
+    const d=today();
+    const open=tasks.filter(t=>!t.done);
+    $('openStat').textContent=open.length;
+    $('todayStat').textContent=open.filter(t=>t.due===d).length;
+    $('overdueStat').textContent=open.filter(t=>t.due && t.due<d).length;
+    $('doneStat').textContent=tasks.filter(t=>t.done).length;
+    const q=$('search').value.trim().toLowerCase(), biz=$('businessFilter').value, view=$('viewFilter').value;
+    let list=tasks.filter(t=>{
+      const hay=[t.title,t.business,t.contact,t.notes,t.priority].join(' ').toLowerCase();
+      if(q && !hay.includes(q)) return false;
+      if(biz && t.business!==biz) return false;
+      if(view==='open' && t.done) return false;
+      if(view==='done' && !t.done) return false;
+      if(view==='today' && (t.done || t.due!==d)) return false;
+      if(view==='overdue' && (t.done || !t.due || t.due>=d)) return false;
+      return true;
+    });
+    const labels={open:'Open tasks',all:'All tasks',today:'Due today',overdue:'Overdue',done:'Completed'};
+    $('listHeading').textContent=labels[view];
+    $('resultCount').textContent=`${list.length} task${list.length===1?'':'s'}`;
+    list.sort((a,b)=>{
+      if(a.done!==b.done) return a.done?1:-1;
+      if(a.due && b.due && a.due!==b.due) return a.due.localeCompare(b.due);
+      if(a.due && !b.due) return -1; if(!a.due && b.due) return 1;
+      const rank={High:0,Normal:1,Low:2}; return (rank[a.priority]??1)-(rank[b.priority]??1);
+    });
+    if(!list.length) { $('taskList').innerHTML='<div class="empty">No tasks here yet.<br><span class="muted">Add a task on the left, or change your filters.</span></div>'; return; }
+    $('taskList').innerHTML=list.map(t=>{
+      let datePill='';
+      if(t.done) datePill='<span class="pill completed">Completed</span>';
+      else if(t.due && t.due<d) datePill='<span class="pill overdue">Overdue · '+esc(dateLabel(t.due))+'</span>';
+      else if(t.due===d) datePill='<span class="pill today">Due today</span>';
+      else if(t.due) datePill='<span class="pill">Due · '+esc(dateLabel(t.due))+'</span>';
+      return `<article class="task ${t.done?'done':''}">
+        <input type="checkbox" aria-label="Mark ${esc(t.title)} completed" ${t.done?'checked':''} data-toggle="${esc(t.id)}">
+        <div><div class="task-title">${esc(t.title)}</div>
+        <div class="task-meta"><span class="pill">${esc(t.business||'Other')}</span><span class="pill">${esc(t.priority||'Normal')} priority</span>${datePill}</div>
+        ${t.contact?`<div class="task-notes"><strong>Contact:</strong> ${esc(t.contact)}</div>`:''}
+        ${t.notes?`<div class="task-notes" style="margin-top:5px">${esc(t.notes)}</div>`:''}
+        <div class="task-bottom"><small>Added ${esc(new Date(t.createdAt||Date.now()).toLocaleDateString())}${t.done&&t.completedAt?' · Completed '+esc(new Date(t.completedAt).toLocaleDateString()):''}</small>
+        <div class="task-buttons"><button class="small secondary" data-edit="${esc(t.id)}">Edit</button><button class="small danger" data-delete="${esc(t.id)}">Delete</button></div></div></div></article>`;
+    }).join('');
+  }
+  $('taskList').addEventListener('change',e=>{const el=e.target.closest('[data-toggle]');if(el)toggleTask(el.dataset.toggle,el.checked);});
+  $('taskList').addEventListener('click',e=>{
+    const edit=e.target.closest('[data-edit]'), del=e.target.closest('[data-delete]');
+    if(edit)editTask(edit.dataset.edit); if(del)deleteTask(del.dataset.delete);
+  });
+  ['search','businessFilter','viewFilter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+  $('exportBtn').addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify({app:'Daily Command Centre',version:1,exportedAt:new Date().toISOString(),tasks},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=`daily-command-centre-backup-${today()}.json`; a.click(); URL.revokeObjectURL(url);
+  });
+  $('importBtn').addEventListener('click',()=>$('importFile').click());
+  $('importFile').addEventListener('change',async e=>{
+    const file=e.target.files[0]; if(!file)return;
+    try {
+      const parsed=JSON.parse(await file.text());
+      const incoming=Array.isArray(parsed)?parsed:parsed.tasks;
+      if(!Array.isArray(incoming)||!incoming.every(t=>t&&typeof t.title==='string'))throw new Error('This file does not look like a valid task backup.');
+      if(!confirm(`Import ${incoming.length} tasks? This will replace the tasks currently saved in this browser.`))return;
+      tasks=incoming.map(t=>({id:t.id||makeId(),title:t.title,business:t.business||'Other',due:t.due||'',contact:t.contact||'',priority:t.priority||'Normal',notes:t.notes||'',done:!!t.done,createdAt:t.createdAt||new Date().toISOString(),updatedAt:t.updatedAt||new Date().toISOString(),completedAt:t.completedAt||null}));
+      save(); resetForm(); alert('Backup imported successfully.');
+    } catch(err) { alert(err.message||'Could not import that file.'); }
+    finally {e.target.value='';}
+  });
+  load(); render();
+})();
+</script>
+</body>
+</html>
