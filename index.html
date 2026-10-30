@@ -86,7 +86,7 @@ let MUTE=false,AC;try{MUTE=localStorage.getItem('fhm')=='1'}catch(e){}
 function snd(k){if(MUTE)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const P={c:[520,.05],win:[880,.35],bad:[110,.3]}[k],o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=k=='bad'?'sawtooth':'sine';o.frequency.setValueAtTime(P[0],n);if(k=='win')o.frequency.linearRampToValueAtTime(1320,n+.25);g.gain.setValueAtTime(.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+P[1]);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+P[1])}catch(e){}}
 function tm(){MUTE=!MUTE;try{localStorage.setItem('fhm',MUTE?'1':'0')}catch(e){}$('mu').textContent=MUTE?'Sound off':'Sound on'}
 if(document.addEventListener)document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button'))snd('c')});
-const FB='';/* paste your Firebase Realtime Database URL here, e.g. https://your-project-default-rtdb.firebaseio.com */
+const FB='https://flip-house-f7557-default-rtdb.firebaseio.com';/* paste your Firebase Realtime Database URL here, e.g. https://your-project-default-rtdb.firebaseio.com */
 const dk=()=>new Date(Date.now()+5*36e5).toISOString().slice(0,10),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 function sr(t){let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}h^=h>>>13;h=Math.imul(h,1540483477);h^=h>>>15;return(h>>>0)/4294967296}
 const RN=t=>S&&S.daily?sr(S.seed+'|'+t):Math.random();
